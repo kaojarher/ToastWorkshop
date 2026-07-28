@@ -1,542 +1,804 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tungaloy 智能刀具助手 Ultra Pro</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kaojarherWorkshop 數位工具車庫</title>
+    <style>
+        :root {
+            --garage-dark: #121418;
+            --garage-slate: #1a1d24;
+            --garage-panel: #222630;
+            --metal-gray: #4a5162;
+            --neon-amber: #ff9f1c;
+            --neon-orange: #ff5400;
+            --neon-cyan: #00e5ff;
+            --text-light: #e0e6ed;
+            --text-muted: #8c9ba5;
+            --border-amber: rgba(255, 159, 28, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang HK', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--garage-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 車庫金屬網格與工業條紋背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+              linear-gradient(rgba(255, 159, 28, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 159, 28, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 25px 20px;
+            background: linear-gradient(to bottom, #090a0c, var(--garage-slate));
+            border-bottom: 3px solid var(--neon-amber);
+            box-shadow: 0 4px 25px rgba(0,0,0,0.8);
+            z-index: 1;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--neon-amber),
+                var(--neon-amber) 15px,
+                #121418 15px,
+                #121418 30px
+            );
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--neon-amber);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 10px rgba(255, 159, 28, 0.5);
+            text-transform: uppercase;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        /* 設定與操作控制列 */
+        .control-panel {
+            width: 100%;
+            max-width: 1400px;
+            padding: 20px 30px 0 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            z-index: 1;
+        }
+
+        .settings-bar {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(34, 38, 48, 0.85);
+            border: 1px solid var(--metal-gray);
+            border-left: 4px solid var(--neon-amber);
+            border-radius: 8px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        .settings-bar label {
+            font-size: 13px;
+            color: var(--neon-amber);
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        .settings-bar input[type="text"] {
+            flex: 1;
+            background: rgba(18, 20, 24, 0.9);
+            border: 1px solid var(--metal-gray);
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .settings-bar input[type="text"]:focus {
+            border-color: var(--neon-amber);
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border-radius: 4px;
+            border: 1px solid var(--neon-amber);
+            background: transparent;
+            color: var(--neon-amber);
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: var(--neon-amber);
+            color: var(--garage-dark);
+            box-shadow: 0 0 12px rgba(255, 159, 28, 0.6);
+        }
+        .btn.primary {
+            background: linear-gradient(135deg, var(--neon-amber), var(--neon-orange));
+            color: #fff;
+            border: none;
+        }
+        .btn.primary:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 0 15px rgba(255, 84, 0, 0.6);
+        }
+
+        .fetch-status {
+            font-size: 13px;
+            color: var(--neon-amber);
+            width: 100%;
+            margin-top: 5px;
+            display: none;
+            background: rgba(255, 159, 28, 0.1);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 3px solid var(--neon-amber);
+        }
+        .fetch-status.visible { display: block; }
+
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            padding: 20px 30px 30px 30px;
+            gap: 30px;
+            z-index: 1;
+        }
+
+        /* 車庫主體藍圖/地圖區 */
+        .map-wrapper {
+            flex: 1.2;
+            background: radial-gradient(circle, #1a222d 0%, #0d1117 100%);
+            border: 2px solid var(--metal-gray);
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7), inset 0 0 20px rgba(0,0,0,0.8);
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            height: fit-content;
+        }
+
+        .map-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 詳細資訊面板 (洞洞板風格) */
+        .info-panel {
+            flex: 1;
+            background: var(--garage-panel);
+            border: 1px solid var(--metal-gray);
+            border-top: 4px solid var(--neon-amber);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 750px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .panel-title {
+            color: var(--neon-amber);
+            font-size: 1.4rem;
+            border-bottom: 2px solid rgba(255, 159, 28, 0.2);
+            padding-bottom: 10px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .zone-card {
+            background: rgba(18, 20, 24, 0.6);
+            border-left: 4px solid var(--neon-amber);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 15px;
+        }
+
+        .zone-card h3 {
+            color: var(--neon-amber);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        /* 整合設施卡片與實時畫面外觀 */
+        .repo-item {
+            background: var(--garage-slate);
+            border: 1px solid var(--metal-gray);
+            border-radius: 8px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .repo-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--neon-amber);
+        }
+
+        /* 預覽畫面視窗 */
+        .card-screenshot {
+            width: 100%;
+            height: 160px;
+            background: #090a0c;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--metal-gray);
+        }
+
+        /* 實時 iframe 容器與縮放比 */
+        .card-screenshot .iframe-wrap {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            overflow: hidden;
+            background: #fff;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .card-screenshot .iframe-wrap.loaded {
+            opacity: 1;
+        }
+        .card-screenshot .iframe-wrap iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1280px; 
+            height: 700px;
+            border: none;
+            transform-origin: top left;
+            pointer-events: none;
+        }
+
+        /* GitHub OpenGraph 備份預覽圖 */
+        .card-screenshot img.preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 2;
+        }
+        .card-screenshot img.preview-img.loaded {
+            opacity: 1;
+        }
+
+        /* 未加載完成時的默認佔位背景 */
+        .card-screenshot .placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #12151c, #1a202c);
+            z-index: 1;
+        }
+        .card-screenshot .placeholder .emoji { font-size: 32px; }
+        .card-screenshot .placeholder .url-preview {
+            font-size: 10px;
+            color: var(--neon-amber);
+            opacity: 0.7;
+            max-width: 80%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 微光載入效果 */
+        .card-screenshot .shimmer {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,159,28,0.15) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .repo-detail-wrap {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .repo-name {
+            font-weight: bold;
+            color: #fff;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .repo-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .repo-links {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .repo-link {
+            flex: 1;
+            font-size: 0.8rem;
+            color: var(--garage-dark);
+            background: linear-gradient(135deg, var(--neon-cyan), #00b4d8);
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0, 229, 255, 0.3);
+        }
+
+        .repo-link:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 4px 12px rgba(0, 229, 255, 0.5);
+        }
+
+        .clickable-zone {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clickable-zone:hover {
+            filter: drop-shadow(0px 0px 10px rgba(255, 159, 28, 0.8));
+            opacity: 0.95;
+        }
+
+        @keyframes pulse-amber {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .castle-marker {
+            animation: pulse-amber 3s infinite ease-in-out;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--garage-panel);
+            border: 1px solid var(--neon-amber);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            z-index: 999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+
+        footer {
+            margin-top: auto;
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 159, 28, 0.2);
+            background: #090a0c;
+        }
+
+        @media (max-width: 1024px) {
+            .container { flex-direction: column; }
+            .map-wrapper { width: 100%; }
+        }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 pb-16">
+<body>
 
-  <!-- Header -->
-  <header class="bg-red-700 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
-    <div class="flex items-center space-x-2">
-      <i class="fa-solid fa-microchip text-2xl text-amber-300"></i>
-      <h1 class="text-xl font-bold tracking-wide">Tungaloy AI 刀具助手</h1>
+    <header>
+        <h1>kaojarherWorkshop</h1>
+        <p>🔧 數位車庫工具箱集景 (Digital Garage) 🛠️</p>
+    </header>
+
+    <!-- GitHub 抓取控制列 -->
+    <div class="control-panel">
+        <div class="settings-bar">
+            <label>⚙️ 整備廠帳號：</label>
+            <input type="text" id="fetchUsername" value="kaojarher" placeholder="輸入 GitHub 帳號">
+            <button class="btn primary" onclick="fetchAndCategorize()"><span id="btnText">⚡ 盤點車庫工具</span></button>
+        </div>
+        <div class="fetch-status" id="fetchStatus"></div>
     </div>
-    <span class="text-xs bg-emerald-600 px-2 py-1 rounded-full text-white font-medium flex items-center">
-      <span class="w-2 h-2 bg-white rounded-full animate-ping mr-1"></span>Gemini Inside
-    </span>
-  </header>
 
-  <!-- Navigation Tabs (Mobile Scrollable) -->
-  <nav class="bg-white border-b border-slate-200 sticky top-[60px] z-40 shadow-sm">
-    <div class="flex overflow-x-auto no-scrollbar p-1 max-w-md mx-auto text-xs font-semibold">
-      <button onclick="switchTab('ai')" id="tab-ai" class="flex-1 min-w-[75px] py-2 px-2 text-center rounded-lg bg-red-700 text-white whitespace-nowrap transition-all">
-        <i class="fa-solid fa-robot mr-1"></i>Gemini AI
-      </button>
-      <button onclick="switchTab('partsearch')" id="tab-partsearch" class="flex-1 min-w-[75px] py-2 px-2 text-center rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition-all">
-        <i class="fa-solid fa-barcode mr-1"></i>型號快查
-      </button>
-      <button onclick="switchTab('recommend')" id="tab-recommend" class="flex-1 min-w-[75px] py-2 px-2 text-center rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition-all">
-        <i class="fa-solid fa-compass mr-1"></i>刀具推薦
-      </button>
-      <button onclick="switchTab('trouble')" id="tab-trouble" class="flex-1 min-w-[75px] py-2 px-2 text-center rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition-all">
-        <i class="fa-solid fa-triangle-exclamation mr-1"></i>異常診斷
-      </button>
-      <button onclick="switchTab('calc')" id="tab-calc" class="flex-1 min-w-[75px] py-2 px-2 text-center rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition-all">
-        <i class="fa-solid fa-calculator mr-1"></i>切削計算
-      </button>
+    <div class="container">
+        <!-- 左側：車庫藍圖/平面分區圖 -->
+        <div class="map-wrapper">
+            <svg class="map-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                <!-- 車庫網格背景線條 -->
+                <rect width="800" height="600" fill="#0f1217"/>
+                <g stroke="#1a222d" stroke-width="1">
+                    <line x1="0" y1="150" x2="800" y2="150"/>
+                    <line x1="0" y1="300" x2="800" y2="300"/>
+                    <line x1="0" y1="450" x2="800" y2="450"/>
+                    <line x1="200" y1="0" x2="200" y2="600"/>
+                    <line x1="400" y1="0" x2="400" y2="600"/>
+                    <line x1="600" y1="0" x2="600" y2="600"/>
+                </g>
+
+                <!-- 外圍斜紋警戒線邊框 -->
+                <rect x="10" y="10" width="780" height="580" fill="none" stroke="#ff9f1c" stroke-width="2" stroke-dasharray="10,5" opacity="0.3"/>
+
+                <!-- 1. 中央入口 / 升降機門戶 -->
+                <g class="clickable-zone" onclick="showZone('mainstreet')">
+                    <path d="M 320,450 L 480,450 L 460,570 L 340,570 Z" fill="#2d3436" opacity="0.9" stroke="#ff9f1c" stroke-width="2"/>
+                    <text x="400" y="520" fill="#ff9f1c" font-size="14" font-weight="bold" text-anchor="middle">🚪 主控制台 & 升降台</text>
+                </g>
+
+                <!-- 2. 車庫核心工作台 -->
+                <g class="clickable-zone castle-marker" onclick="showZone('castle')">
+                    <circle cx="400" cy="310" r="50" fill="#343a40" stroke="#00e5ff" stroke-width="2"/>
+                    <polygon points="400,270 375,320 425,320" fill="#ff9f1c"/>
+                    <text x="400" y="315" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">🧰 旗艦重型工具桌</text>
+                </g>
+
+                <!-- 3. 自動化與引擎改裝區 -->
+                <g class="clickable-zone" onclick="showZone('adventure')">
+                    <path d="M 280,100 Q 400,60 520,100 L 490,230 Q 400,240 310,230 Z" fill="#1e272e" stroke="#ff9f1c" stroke-width="1.5"/>
+                    <text x="400" y="155" fill="#e0e6ed" font-size="14" font-weight="bold" text-anchor="middle">⚙️ 腳本與自動化檢修區</text>
+                </g>
+
+                <!-- 4. 高效能動力與系統區 -->
+                <g class="clickable-zone" onclick="showZone('tomorrow')">
+                    <path d="M 540,220 Q 700,180 750,260 L 690,410 Q 560,370 520,320 Z" fill="#1e272e" stroke="#00e5ff" stroke-width="1.5"/>
+                    <text x="630" y="300" fill="#e0e6ed" font-size="14" font-weight="bold" text-anchor="middle">🏎️ 效能與系統儀表區</text>
+                </g>
+
+                <!-- 5. 隨手便攜工具掛牆 -->
+                <g class="clickable-zone" onclick="showZone('puzzle')">
+                    <path d="M 60,150 Q 180,120 250,170 L 220,270 Q 130,230 80,210 Z" fill="#1e272e" stroke="#ff9f1c" stroke-width="1.5"/>
+                    <text x="155" y="195" fill="#e0e6ed" font-size="14" font-weight="bold" text-anchor="middle">🔨 洞洞板輕量工具牆</text>
+                </g>
+            </svg>
+        </div>
+
+        <!-- 右側：車庫分區工具清單面板 -->
+        <div class="info-panel" id="info-panel">
+            <h2 class="panel-title" id="panel-title">歡迎進入 kaojarher 數位工具車庫</h2>
+            <div id="panel-content">
+                <p style="text-align: center; color: var(--neon-amber); font-style: italic; margin-top: 20px;">
+                    ✦ 嚴格淨化：全面掃描 Name、Description 及 Topics 標籤，徹底封殺所有遊戲專案 ✦
+                </p>
+            </div>
+        </div>
     </div>
-  </nav>
 
-  <!-- Main Container -->
-  <main class="max-w-md mx-auto p-4 space-y-6">
+    <div id="toast"></div>
+    <footer><p>&copy; 2026 kaojarherWorkshop 數位車庫工具箱</p></footer>
 
-    <!-- 1. Gemini AI 智能對話助手 -->
-    <section id="sec-ai" class="space-y-4">
-      <div class="bg-white rounded-xl p-4 shadow border border-slate-200 space-y-3">
-        <h2 class="text-base font-bold text-slate-700 flex items-center">
-          <i class="fa-solid fa-wand-magic-sparkles text-red-600 mr-2"></i>Gemini 切削顧問
-        </h2>
-        <p class="text-xs text-slate-500">輸入加工材料、設備或遭遇的切削問題，AI 將即時進行 RAG 檢索診斷：</p>
+    <script>
+        let parkZones = {
+            mainstreet: { title: "主控制台 & 升降台 (Garage Portal)", desc: "車庫門戶入口，擺放綜合專案與整備廠導覽門戶。", repos: [] },
+            castle: { title: "🧰 旗艦重型工具桌 (Flagship Master Tools)", desc: "車庫核心。展示獲得較多 Stars 或最具代表性的主力開發工具箱。", repos: [] },
+            adventure: { title: "⚙️ 腳本與自動化檢修區 (Dev & Automation Tools)", desc: "包含【自動化、腳本、部署、開源開發】相關工具。", repos: [] },
+            tomorrow: { title: "🏎️ 效能與系統儀表區 (System & Performance Tools)", desc: "包含【系統監控、效能優化、高效率作業】相關工具。", repos: [] },
+            puzzle: { title: "🔨 洞洞板輕量工具牆 (Handy Utilities)", desc: "包含【日常計算、轉換器、輕量小幫手】等隨手拿取使用的工具。", repos: [] }
+        };
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">Gemini API Key (自訂選項)</label>
-          <input type="password" id="gemini-key" placeholder="貼上你的 Gemini API Key (可空著使用內建)" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-red-500 outline-none">
-        </div>
+        // 廣義遊戲相關黑名單關鍵字
+        const GAME_BLACK_LIST = [
+            'game', 'games', 'gaming', 'gamer', 'unity', 'godot', 'phaser', 'rpg', 
+            'arcade', 'tetris', 'snake', 'puzzle', 'canvas-game', 'mini-game', 'boardgame', 
+            'card-game', 'flappy', 'mario', 'pokemon', 'roguelike', 'chess', 'sudoku',
+            '遊戲', '小遊戲', '貪食蛇', '井字', '賽車', '射擊', '益智', '桌遊', '娛樂', '魔王', '闖關'
+        ];
 
-        <div>
-          <textarea id="ai-prompt" rows="3" placeholder="例如：加工 S45C 時，車削斷屑不佳且表面光潔度不夠，推薦什麼 Tungaloy 刀片與切削速度？" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-red-500 outline-none"></textarea>
-        </div>
-
-        <button onclick="askGemini()" id="btn-ai" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg shadow active:scale-95 transition-all flex justify-center items-center text-xs">
-          <i class="fa-solid fa-paper-plane mr-2"></i>讓 AI 診斷並推薦解決方案
-        </button>
-      </div>
-
-      <div id="ai-loading" class="hidden text-center py-6 bg-white rounded-xl shadow">
-        <i class="fa-solid fa-brain fa-spin text-3xl text-red-600 mb-2"></i>
-        <p class="text-xs text-slate-500 font-medium">Gemini AI 分析切削條件與 Tungaloy 資料庫中...</p>
-      </div>
-
-      <div id="ai-result" class="hidden bg-white rounded-xl p-4 shadow border-l-4 border-amber-500 space-y-2">
-        <h3 class="font-bold text-slate-800 text-xs flex items-center justify-between border-b pb-2">
-          <span><i class="fa-solid fa-robot text-amber-500 mr-1"></i>Gemini 診斷建議</span>
-          <button onclick="saveHistory()" class="text-slate-400 hover:text-red-600 text-[10px]"><i class="fa-solid fa-bookmark mr-1"></i>儲存紀錄</button>
-        </h3>
-        <div id="ai-output" class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap"></div>
-      </div>
-    </section>
-
-    <!-- 2. 型號精確規格快查 (新增預載案例與鄰近規格表單) -->
-    <section id="sec-partsearch" class="hidden space-y-4">
-      <div class="bg-white rounded-xl p-4 shadow border border-slate-200 space-y-3">
-        <h2 class="text-base font-bold text-slate-700 flex items-center">
-          <i class="fa-solid fa-magnifying-glass text-red-600 mr-2"></i>Tungaloy 刀具/配件規格快查
-        </h2>
-        
-        <!-- 預載案例快速鍵 -->
-        <div class="space-y-1">
-          <span class="text-[11px] font-semibold text-slate-500 block">常用熱門預載案例（點擊快套）：</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button onclick="loadPartCase('WNMG080408-TM T9215')" class="bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 px-2 py-1 rounded text-[11px] font-mono transition-all">WNMG080408-TM</button>
-            <button onclick="loadPartCase('CNMG120408-TH T9225')" class="bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 px-2 py-1 rounded text-[11px] font-mono transition-all">CNMG120408-TH</button>
-            <button onclick="loadPartCase('CCMT060204-PS AH725')" class="bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 px-2 py-1 rounded text-[11px] font-mono transition-all">CCMT060204-PS</button>
-          </div>
-        </div>
-
-        <div class="relative pt-1">
-          <input type="text" id="part-number-input" placeholder="例如: WNMG080408-TM" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 pr-10 text-xs focus:ring-2 focus:ring-red-500 outline-none font-mono uppercase">
-          <button onclick="searchPartNumber()" class="absolute right-1 bottom-1 bg-red-600 text-white p-2 rounded-md hover:bg-red-700">
-            <i class="fa-solid fa-arrow-right"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- 快查結果顯示區 -->
-      <div id="part-result" class="hidden space-y-4">
-        <div class="bg-white rounded-xl p-4 shadow border-l-4 border-red-600 space-y-3">
-          <div class="flex justify-between items-start border-b pb-2">
-            <div>
-              <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold" id="part-res-type">ISO 車削刀片</span>
-              <h3 class="font-bold text-slate-800 text-sm font-mono mt-1" id="part-res-title">WNMG080408-TM T9215</h3>
-            </div>
-            <a id="part-res-cad" href="#" target="_blank" class="text-xs text-red-600 hover:underline flex items-center font-semibold">
-              <i class="fa-solid fa-cube mr-1"></i>CAD 3D
-            </a>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div class="bg-slate-50 p-2 rounded">
-              <span class="text-slate-400 block">內切圓 (IC)</span>
-              <span class="font-bold text-slate-700" id="part-res-ic">12.7 mm</span>
-            </div>
-            <div class="bg-slate-50 p-2 rounded">
-              <span class="text-slate-400 block">厚度 (S)</span>
-              <span class="font-bold text-slate-700" id="part-res-s">4.76 mm</span>
-            </div>
-            <div class="bg-slate-50 p-2 rounded">
-              <span class="text-slate-400 block">刀尖角半徑 (RE)</span>
-              <span class="font-bold text-slate-700" id="part-res-re">0.8 mm</span>
-            </div>
-            <div class="bg-slate-50 p-2 rounded">
-              <span class="text-slate-400 block">主適用 ISO 材料</span>
-              <span class="font-bold text-emerald-600" id="part-res-iso">P10 - P25 (鋼材)</span>
-            </div>
-          </div>
-
-          <div class="bg-slate-50 p-2.5 rounded text-xs space-y-1">
-            <span class="font-bold text-slate-700 block"><i class="fa-solid fa-circle-info mr-1"></i>規格說明與應用指南：</span>
-            <p class="text-slate-600 leading-relaxed" id="part-res-desc">通用型切削刀片，適合中切削至粗加工條件。</p>
-          </div>
-        </div>
-
-        <!-- 鄰近規格與系列替換對照表單 -->
-        <div class="bg-white rounded-xl p-4 shadow border border-slate-200 space-y-3">
-          <h4 class="text-xs font-bold text-slate-700 flex items-center justify-between border-b pb-2">
-            <span><i class="fa-solid fa-list-check text-red-600 mr-1.5"></i>同系列鄰近規格與槽型對照表</span>
-            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-normal">快速比較</span>
-          </h4>
-          
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-[11px]">
-              <thead>
-                <tr class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
-                  <th class="p-1.5 font-mono">鄰近型號</th>
-                  <th class="p-1.5">R角(RE)</th>
-                  <th class="p-1.5">主要用途 / 特性</th>
-                  <th class="p-1.5 text-center">切換</th>
-                </tr>
-              </thead>
-              <tbody id="nearby-specs-body" class="divide-y divide-slate-100 text-slate-700">
-                <!-- 動態注入鄰近規格列 -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. 刀具推薦與 CAD 下載 (連線 eCatalog) -->
-    <section id="sec-recommend" class="hidden space-y-4">
-      <div class="bg-white rounded-xl p-4 shadow border border-slate-200">
-        <h2 class="text-base font-bold text-slate-700 mb-3 flex items-center">
-          <i class="fa-solid fa-database text-red-600 mr-2"></i>Tungaloy 官方 eCatalog 檢索
-        </h2>
-        
-        <div class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">ISO 被削材</label>
-            <select id="material" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-red-500 outline-none">
-              <option value="P">P - 鋼材 (Steel)</option>
-              <option value="M">M - 不鏽鋼 (Stainless)</option>
-              <option value="K">K - 鑄鐵 (Cast Iron)</option>
-              <option value="S">S - 難削材 / 鈦合金 (HRSA)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 mb-1">加工工序</label>
-            <select id="process" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-red-500 outline-none">
-              <option value="rough">粗加工 (Roughing)</option>
-              <option value="medium">通用切削 (Medium)</option>
-              <option value="finish">精加工 (Finishing)</option>
-            </select>
-          </div>
-
-          <button onclick="fetchTungaloyData()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg shadow active:scale-95 transition-all text-xs">
-            檢索官方刀片規格與 CAD
-          </button>
-        </div>
-      </div>
-
-      <div id="recommend-result" class="hidden bg-white rounded-xl p-4 shadow border-l-4 border-red-600 space-y-3">
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-slate-50 p-2 rounded">
-            <span class="text-slate-400 block">推薦材質</span>
-            <span id="res-grade" class="font-bold text-red-600 text-xs">--</span>
-          </div>
-          <div class="bg-slate-50 p-2 rounded">
-            <span class="text-slate-400 block">斷屑槽</span>
-            <span id="res-breaker" class="font-bold text-slate-700 text-xs">--</span>
-          </div>
-        </div>
-        <div class="bg-amber-50 border border-amber-200 rounded p-2 text-xs text-amber-800 space-y-1">
-          <p id="res-vc">切削速度 Vc: -- m/min</p>
-          <p id="res-fn">每轉進給 fn: -- mm/rev</p>
-        </div>
-        <a id="res-cad-link" href="#" target="_blank" class="w-full bg-red-700 hover:bg-red-800 text-white text-xs font-semibold py-2 rounded-lg flex justify-center items-center">
-          <i class="fa-solid fa-cube mr-2"></i>檢視 3D CAD 模型 (eCatalog)
-        </a>
-      </div>
-    </section>
-
-    <!-- 4. 加工異常診斷器 (Troubleshooting) -->
-    <section id="sec-trouble" class="hidden space-y-4">
-      <div class="bg-white rounded-xl p-4 shadow border border-slate-200 space-y-3">
-        <h2 class="text-base font-bold text-slate-700 flex items-center">
-          <i class="fa-solid fa-wrench text-red-600 mr-2"></i>刀具損壞與切削異常對策
-        </h2>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">選擇遭遇的加工問題</label>
-          <select id="trouble-type" onchange="getTroubleSolution()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-red-500 outline-none">
-            <option value="">-- 請選擇異常現象 --</option>
-            <option value="chipping">刀尖崩刃 (Chipping)</option>
-            <option value="crater">月牙窪磨損 (Crater Wear)</option>
-            <option value="bue">積屑瘤生成 (Built-up Edge)</option>
-            <option value="vibration">加工震動 (Chatter / Vibration)</option>
-            <option value="chip_control">切屑纏繞 / 斷屑不良 (Poor Chip Control)</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="trouble-result" class="hidden bg-white rounded-xl p-4 shadow space-y-3">
-        <h3 class="font-bold text-slate-800 text-xs border-b pb-1" id="trouble-title">改善對策</h3>
-        <ul id="trouble-list" class="space-y-2 text-xs text-slate-600 list-disc pl-4"></ul>
-      </div>
-    </section>
-
-    <!-- 5. 切削計算器 -->
-    <section id="sec-calc" class="hidden space-y-4">
-      <div class="bg-white rounded-xl p-4 shadow border border-slate-200 space-y-3">
-        <div class="flex border-b text-xs font-bold text-slate-500">
-          <button onclick="switchCalcMode('milling')" id="calc-tab-milling" class="flex-1 pb-2 border-b-2 border-red-600 text-red-600">銑削 Milling</button>
-          <button onclick="switchCalcMode('turning')" id="calc-tab-turning" class="flex-1 pb-2 border-b-2 border-transparent hover:text-slate-800">車削 Turning</button>
-          <button onclick="switchCalcMode('drilling')" id="calc-tab-drilling" class="flex-1 pb-2 border-b-2 border-transparent hover:text-slate-800">鑽削 Drilling</button>
-        </div>
-
-        <div id="calc-inputs" class="space-y-2 text-xs">
-          <div>
-            <label class="block text-slate-500 mb-0.5" id="lbl-d">刀具外徑 D (mm)</label>
-            <input type="number" id="c-d" value="50" class="w-full bg-slate-50 border rounded p-2 outline-none">
-          </div>
-          <div>
-            <label class="block text-slate-500 mb-0.5">切削速度 Vc (m/min)</label>
-            <input type="number" id="c-vc" value="180" class="w-full bg-slate-50 border rounded p-2 outline-none">
-          </div>
-          <div>
-            <label class="block text-slate-500 mb-0.5" id="lbl-feed">每刃進給 fz (mm/t)</label>
-            <input type="number" id="c-f" value="0.15" step="0.01" class="w-full bg-slate-50 border rounded p-2 outline-none">
-          </div>
-          <div id="div-z">
-            <label class="block text-slate-500 mb-0.5">刃數 Z</label>
-            <input type="number" id="c-z" value="4" class="w-full bg-slate-50 border rounded p-2 outline-none">
-          </div>
-        </div>
-
-        <button onclick="doCalculate()" class="w-full bg-slate-800 text-white font-bold py-2 rounded-lg text-xs">即時計算</button>
-      </div>
-
-      <div id="calc-result" class="hidden bg-slate-800 text-white rounded-xl p-4 shadow space-y-2 text-xs">
-        <div class="flex justify-between border-b border-slate-700 pb-1">
-          <span class="text-slate-400">主軸轉速 (S)</span>
-          <span class="font-bold text-amber-400 text-sm" id="out-s">0 RPM</span>
-        </div>
-        <div class="flex justify-between border-b border-slate-700 pb-1">
-          <span class="text-slate-400">進給速度 (F)</span>
-          <span class="font-bold text-emerald-400 text-sm" id="out-f">0 mm/min</span>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <script>
-    let currentCalcMode = 'milling';
-
-    function switchTab(tab) {
-      ['ai', 'partsearch', 'recommend', 'trouble', 'calc'].forEach(t => {
-        document.getElementById(`sec-${t}`).classList.toggle('hidden', t !== tab);
-        const btn = document.getElementById(`tab-${t}`);
-        if(t === tab) {
-          btn.className = "flex-1 min-w-[75px] py-2 px-2 text-center rounded-lg bg-red-700 text-white whitespace-nowrap transition-all";
-        } else {
-          btn.className = "flex-1 min-w-[75px] py-2 px-2 text-center rounded-lg text-slate-600 hover:bg-slate-100 whitespace-nowrap transition-all";
+        // 預設樣品數據
+        function loadMockData() {
+            parkZones.mainstreet.repos = [{ name: "kaojarher-garage-portal", description: "kaojarher 數位車庫總控台與綜合工具清單入口", html_url: "https://kaojarher.github.io/kaojarherWorkshop/", homepage: "https://kaojarher.github.io/kaojarherWorkshop/" }];
+            parkZones.castle.repos = [{ name: "DevOps-Toolkit-Pro", description: "一款全方位的自動化部署與系統維運重型工具箱", html_url: "https://github.com/kaojarher/DevOps-Toolkit-Pro", homepage: "" }];
+            parkZones.adventure.repos = [{ name: "auto-script-builder", description: "協助開發者快速生成腳本的自動化軟體工具", html_url: "https://github.com/kaojarher/auto-script-builder", homepage: "" }];
+            parkZones.tomorrow.repos = [{ name: "speed-system-monitor", description: "高效能即時監控與系統資源檢測分析工具", html_url: "https://github.com/kaojarher/speed-system-monitor", homepage: "" }];
+            parkZones.puzzle.repos = [{ name: "handy-calc-converter", description: "生活必備的單位轉換與多功能計算輕量小工具", html_url: "https://github.com/kaojarher/handy-calc-converter", homepage: "" }];
         }
-      });
-    }
+        loadMockData();
 
-    // 1. Gemini AI 串接
-    async function askGemini() {
-      const prompt = document.getElementById('ai-prompt').value;
-      const customKey = document.getElementById('gemini-key').value;
-      if (!prompt) return alert('請輸入您的加工問題！');
+        // ── 實時畫面預覽控制邏輯 ──
+        let previewObserver = null;
 
-      document.getElementById('ai-result').classList.add('hidden');
-      document.getElementById('ai-loading').classList.remove('hidden');
-
-      const apiKey = customKey || "YOUR_GEMINI_API_KEY"; 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-      const systemInstruction = "你是一位精通 Tungaloy（泰珂洛）切削刀具與 CNC 加工的資深專家。請針對使用者的問題，建議合適的 Tungaloy 刀片材質 (Grade)、斷屑槽 (Breaker)、切削速度 Vc 與進給量，並給出專業的加工改善對策。回答需簡明扼要，適合手機閱讀。";
-
-      try {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `${systemInstruction}\n\n使用者問題: ${prompt}` }] }]
-          })
-        });
-
-        const data = await res.json();
-        const reply = data.candidates[0].content.parts[0].text;
-        
-        document.getElementById('ai-output').innerText = reply;
-        document.getElementById('ai-result').classList.remove('hidden');
-      } catch (err) {
-        document.getElementById('ai-output').innerText = "Gemini API 連線異常，請確認 API Key 是否設定正確，或檢查網路連線。";
-        document.getElementById('ai-result').classList.remove('hidden');
-      } finally {
-        document.getElementById('ai-loading').classList.add('hidden');
-      }
-    }
-
-    // 預載案例點擊事件
-    function loadPartCase(partNum) {
-      document.getElementById('part-number-input').value = partNum;
-      searchPartNumber();
-    }
-
-    // 2. Tungaloy 型號快查邏輯 + 鄰近規格表單生成
-    function searchPartNumber() {
-      const input = document.getElementById('part-number-input').value.trim().toUpperCase();
-      if (!input) return alert('請輸入 Tungaloy 刀具或配件型號！');
-
-      const partResult = document.getElementById('part-result');
-      let ic = "12.7 mm", s = "4.76 mm", re = "0.8 mm";
-      let baseModel = input.split("-")[0] || "WNMG080408";
-      let prefix = baseModel.substring(0, 4); // WNMG / CNMG / CCMT
-
-      if (input.includes("080408")) {
-        ic = "12.7 mm"; s = "4.76 mm"; re = "0.8 mm";
-      } else if (input.includes("120408")) {
-        ic = "12.7 mm"; s = "4.76 mm"; re = "0.8 mm";
-      } else if (input.includes("060204")) {
-        ic = "9.525 mm"; s = "2.38 mm"; re = "0.4 mm";
-      }
-
-      document.getElementById('part-res-title').innerText = input;
-      document.getElementById('part-res-ic').innerText = ic;
-      document.getElementById('part-res-s').innerText = s;
-      document.getElementById('part-res-re').innerText = re;
-      document.getElementById('part-res-cad').href = `https://ecat.tungaloy.com/SearchResult?keyword=${encodeURIComponent(input)}`;
-
-      if (input.startsWith("W")) {
-        document.getElementById('part-res-type').innerText = "ISO 車削刀片 (六角形 80°)";
-      } else if (input.startsWith("C")) {
-        document.getElementById('part-res-type').innerText = "ISO 車削刀片 (菱形 80°)";
-      } else if (input.startsWith("T")) {
-        document.getElementById('part-res-type').innerText = "ISO 車削刀片 (正三角形 60°)";
-      } else {
-        document.getElementById('part-res-type').innerText = "Tungaloy 專用刀具/配件";
-      }
-
-      document.getElementById('part-res-desc').innerText = `已比對官方 eCatalog 規格，包含 ${input} 之標準尺寸數據。點擊右上角「CAD 3D」即可開啟官方圖紙與 STEP 3D 檔。`;
-
-      // 生成鄰近規格與槽型對照表
-      generateNearbyTable(prefix, input);
-
-      partResult.classList.remove('hidden');
-    }
-
-    // 生成鄰近規格表單內容
-    function generateNearbyTable(prefix, currentInput) {
-      const tbody = document.getElementById('nearby-specs-body');
-      
-      // 動態建構同系列的 R0.4, R0.8, R1.2 以及強效斷屑槽對照
-      const specs = [
-        { model: `${prefix}04-TS`, re: "0.4 mm", desc: "精加工專用 / 光潔度優先", tag: "TS 精切槽" },
-        { model: `${prefix}08-TM`, re: "0.8 mm", desc: "通用中切削 / 兼顧強度與表面", tag: "TM 通用槽" },
-        { model: `${prefix}12-TH`, re: "1.2 mm", desc: "重切削 / 高斷續抗崩角", tag: "TH 粗加工" },
-        { model: `${prefix}08-GH`, re: "0.8 mm", desc: "黑皮 / 斷續強切削對策", tag: "GH 強力槽" }
-      ];
-
-      tbody.innerHTML = specs.map(item => `
-        <tr class="hover:bg-slate-50 transition-colors">
-          <td class="p-1.5 font-bold font-mono text-slate-800">${item.model}</td>
-          <td class="p-1.5 text-slate-600">${item.re}</td>
-          <td class="p-1.5">
-            <span class="block text-slate-700">${item.desc}</span>
-            <span class="inline-block text-[9px] bg-slate-100 text-slate-500 px-1 rounded">${item.tag}</span>
-          </td>
-          <td class="p-1.5 text-center">
-            <button onclick="loadPartCase('${item.model}')" class="text-red-600 hover:text-red-800 font-bold text-xs p-1">
-              <i class="fa-solid fa-arrows-rotate"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    // 3. 刀具推薦邏輯
-    function fetchTungaloyData() {
-      const mat = document.getElementById('material').value;
-      const proc = document.getElementById('process').value;
-      
-      const map = {
-        P: { grade: "T9225", breaker: "TM / GH", vc: "180 - 280", fn: "0.15 - 0.35" },
-        M: { grade: "AH6225", breaker: "SM / SS", vc: "120 - 200", fn: "0.12 - 0.25" },
-        K: { grade: "T5115", breaker: "TM", vc: "200 - 320", fn: "0.20 - 0.40" },
-        S: { grade: "AH8015", breaker: "HR / SM", vc: "40 - 80", fn: "0.08 - 0.20" }
-      };
-
-      const res = map[mat];
-      document.getElementById('res-grade').innerText = res.grade;
-      document.getElementById('res-breaker').innerText = res.breaker;
-      document.getElementById('res-vc').innerText = `切削速度 Vc: ${res.vc} m/min`;
-      document.getElementById('res-fn').innerText = `每轉進給 fn: ${res.fn} mm/rev`;
-      document.getElementById('res-cad-link').href = `https://ecat.tungaloy.com/SearchResult?keyword=${res.grade}`;
-      document.getElementById('recommend-result').classList.remove('hidden');
-    }
-
-    // 4. 異常診斷資料庫
-    const troubleDB = {
-      chipping: {
-        title: "刀尖崩刃 (Chipping) 對策",
-        items: ["更換韌性較高之材質 (例如 T9215 -> T9225)", "改用負前角或強化型斷屑槽 (如 GH 槽型)", "降低每刃進給量 (fn / fz)", "檢查機台與夾具剛性，減少懸伸長度"]
-      },
-      crater: {
-        title: "月牙窪磨損 (Crater Wear) 對策",
-        items: ["提高塗層耐熱性 (選擇 CVD 塗層材質 T9200 系列)", "降低切削速度 Vc", "選用正前角大、減低切削熱的斷屑槽", "增加切削液水壓與流量"]
-      },
-      bue: {
-        title: "積屑瘤 (Built-up Edge) 對策",
-        items: ["提高切削速度 Vc 越過積屑瘤生成區", "選用前角銳利之斷屑槽 (如 JS / SS 槽型)", "改用 PVD 塗層或超細粒硬質合金材質", "使用高壓水溶性切削油"]
-      },
-      vibration: {
-        title: "加工震動 (Chatter) 對策",
-        items: ["改用不等分割 / 不等螺旋角銑刀", "降低切深 ap 或步距 ae", "提高每刃進給 fz 以穩定切削力", "縮短刀具懸伸 (Overhang) 長度"]
-      },
-      chip_control: {
-        title: "斷屑不良 (Poor Chip Control) 對策",
-        items: ["選擇專用斷屑槽 (如車削粗加工選 GH/HR)", "提高進給率 fn 以增加切屑厚度與脆斷性", "增加切深 ap 使切屑接觸斷屑牆", "採用高壓內冷刀桿 (TungJet 技術)"]
-      }
-    };
-
-    function getTroubleSolution() {
-      const type = document.getElementById('trouble-type').value;
-      if (!type) return;
-
-      const data = troubleDB[type];
-      document.getElementById('trouble-title').innerText = data.title;
-      
-      const list = document.getElementById('trouble-list');
-      list.innerHTML = data.items.map(item => `<li>${item}</li>`).join('');
-      document.getElementById('trouble-result').classList.remove('hidden');
-    }
-
-    // 5. 三合一計算器
-    function switchCalcMode(mode) {
-      currentCalcMode = mode;
-      ['milling', 'turning', 'drilling'].forEach(m => {
-        const btn = document.getElementById(`calc-tab-${m}`);
-        if(m === mode) {
-          btn.className = "flex-1 pb-2 border-b-2 border-red-600 text-red-600 font-bold";
-        } else {
-          btn.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800";
+        function isLivePagesUrl(url) {
+            return url && url.startsWith('http') && !url.includes('github.com');
         }
-      });
 
-      const lblD = document.getElementById('lbl-d');
-      const lblFeed = document.getElementById('lbl-feed');
-      const divZ = document.getElementById('div-z');
+        function injectIframePreview(cardEl, repoData) {
+            const screenshotEl = cardEl.querySelector('.card-screenshot');
+            if (!screenshotEl || screenshotEl.querySelector('.iframe-wrap')) return;
 
-      if (mode === 'milling') {
-        lblD.innerText = "刀具外徑 D (mm)";
-        lblFeed.innerText = "每刃進給 fz (mm/t)";
-        divZ.classList.remove('hidden');
-      } else if (mode === 'turning') {
-        lblD.innerText = "工件加工外徑 D (mm)";
-        lblFeed.innerText = "每轉進給 fn (mm/rev)";
-        divZ.classList.add('hidden');
-      } else if (mode === 'drilling') {
-        lblD.innerText = "鑽頭直徑 Dc (mm)";
-        lblFeed.innerText = "每轉進給 fr (mm/rev)";
-        divZ.classList.add('hidden');
-      }
-    }
+            const wrap = document.createElement('div');
+            wrap.className = 'iframe-wrap';
 
-    function doCalculate() {
-      const d = parseFloat(document.getElementById('c-d').value);
-      const vc = parseFloat(document.getElementById('c-vc').value);
-      const f = parseFloat(document.getElementById('c-f').value);
-      const z = parseFloat(document.getElementById('c-z').value);
+            const iframe = document.createElement('iframe');
+            iframe.src = repoData.homepage;
+            iframe.setAttribute('loading', 'lazy');
+            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+            
+            iframe.style.width = '1280px';
+            iframe.style.height = '700px';
 
-      if (!d || !vc || !f) return;
+            function adjustScale() {
+                const currentWidth = screenshotEl.offsetWidth || 300;
+                const scaleFactor = currentWidth / 1280;
+                iframe.style.transform = `scale(${scaleFactor})`;
+                iframe.style.height = Math.ceil(160 / scaleFactor) + 'px';
+            }
+            adjustScale();
 
-      const rpm = Math.round((vc * 1000) / (Math.PI * d));
-      let feedRate = (currentCalcMode === 'milling') ? Math.round(rpm * f * z) : Math.round(rpm * f);
+            iframe.onload = () => {
+                wrap.classList.add('loaded');
+                const shimmer = screenshotEl.querySelector('.shimmer');
+                if (shimmer) shimmer.remove();
+            };
 
-      document.getElementById('out-s').innerText = `${rpm} RPM`;
-      document.getElementById('out-f').innerText = `${feedRate} mm/min`;
-      document.getElementById('calc-result').classList.remove('hidden');
-    }
+            wrap.appendChild(iframe);
+            screenshotEl.prepend(wrap);
+        }
 
-    function saveHistory() {
-      const output = document.getElementById('ai-output').innerText;
-      if (!output) return;
-      localStorage.setItem('tungaloy_last_diag', output);
-      alert('已將診斷紀錄儲存至本機手機記憶體！');
-    }
-  </script>
+        function injectGithubSocialPreview(cardEl, repoData) {
+            const screenshotEl = cardEl.querySelector('.card-screenshot');
+            if (!screenshotEl || screenshotEl.querySelector('.preview-img')) return;
+
+            const match = (repoData.html_url || '').match(/github\.com\/([^/]+)\/([^/?#]+)/);
+            if (!match) return;
+
+            const img = document.createElement('img');
+            img.className = 'preview-img';
+            img.src = `https://opengraph.githubassets.com/1/${match[1]}/${match[2]}`;
+            img.alt = repoData.name;
+            img.onload = () => {
+                img.classList.add('loaded');
+                const shimmer = screenshotEl.querySelector('.shimmer');
+                if (shimmer) shimmer.remove();
+            };
+            img.onerror = () => img.remove();
+            screenshotEl.prepend(img);
+        }
+
+        function triggerLazyLoadPreview(cardEl, repoData) {
+            if (isLivePagesUrl(repoData.homepage)) {
+                injectIframePreview(cardEl, repoData);
+            } else if (repoData.html_url) {
+                injectGithubSocialPreview(cardEl, repoData);
+            }
+        }
+
+        function setupLazyPreviews(currentZoneRepos) {
+            if (previewObserver) previewObserver.disconnect();
+            
+            previewObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    const cardEl = entry.target;
+                    const rIdx = parseInt(cardEl.dataset.ridx, 10);
+                    if (isNaN(rIdx) || !currentZoneRepos[rIdx]) return;
+                    
+                    triggerLazyLoadPreview(cardEl, currentZoneRepos[rIdx]);
+                    previewObserver.unobserve(cardEl);
+                });
+            }, { rootMargin: '100px' });
+
+            document.querySelectorAll('.repo-item[data-ridx]').forEach(el => {
+                previewObserver.observe(el);
+            });
+        }
+
+        // ── 檢查專案是否包含任何遊戲關鍵字 ──
+        function isGameRepo(repo) {
+            const name = (repo.name || '').toLowerCase();
+            const desc = (repo.description || '').toLowerCase();
+            const topics = (repo.topics || []).map(t => String(t).toLowerCase());
+
+            // 1. 檢查 Topics 標籤
+            const hasGameTopic = topics.some(topic => GAME_BLACK_LIST.some(kw => topic.includes(kw)));
+            if (hasGameTopic) return true;
+
+            // 2. 檢查名稱與描述
+            const fullText = name + ' ' + desc;
+            return GAME_BLACK_LIST.some(kw => fullText.includes(kw));
+        }
+
+        // ── GitHub API 數據抓取 (深度淨化邏輯) ──
+        async function fetchAndCategorize() {
+            const username = document.getElementById('fetchUsername').value.trim();
+            if (!username) { showToast("⚠️ 請輸入 GitHub 帳號"); return; }
+
+            const btnText = document.getElementById('btnText');
+            const statusEl = document.getElementById('fetchStatus');
+            btnText.innerText = "⚡ 正在深度掃描...";
+            statusEl.className = "fetch-status visible";
+            statusEl.innerText = `正在過濾 @${username} 中所有遊戲/Game類別專案 (多重特徵深度黑名單)...`;
+
+            try {
+                const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`);
+                if (!response.ok) throw new Error("無法取得倉庫，請檢查帳號是否正確");
+                
+                const repos = await response.json();
+                for (let key in parkZones) { parkZones[key].repos = []; }
+                
+                parkZones.mainstreet.repos.push({
+                    name: `${username}.github.io`,
+                    description: "kaojarher 數位車庫總控台與工具清單",
+                    html_url: `https://github.com/${username}/${username}.github.io`,
+                    homepage: `https://${username}.github.io`
+                });
+
+                let matchCount = 0;
+                let filterOutCount = 0;
+
+                repos.forEach(repo => {
+                    if (isGameRepo(repo)) {
+                        filterOutCount++;
+                        return; // 確定為遊戲相關專案，徹底剔除
+                    }
+
+                    matchCount++;
+                    const desc = repo.description || "";
+                    const name = repo.name || "";
+                    
+                    const repoData = {
+                        name: repo.name,
+                        description: desc,
+                        html_url: repo.html_url,
+                        homepage: repo.homepage || (repo.has_pages ? `https://${username}.github.io/${repo.name}` : "")
+                    };
+
+                    const contentText = (name + desc).toLowerCase();
+                    if (repo.stargazers_count > 10) {
+                        parkZones.castle.repos.push(repoData);
+                    } else if (contentText.includes("calc") || contentText.includes("convert") || contentText.includes("輕量") || contentText.includes("日常")) {
+                        parkZones.puzzle.repos.push(repoData);
+                    } else if (contentText.includes("api") || contentText.includes("script") || contentText.includes("auto") || contentText.includes("自動")) {
+                        parkZones.adventure.repos.push(repoData);
+                    } else {
+                        parkZones.tomorrow.repos.push(repoData);
+                    }
+                });
+
+                statusEl.innerText = `🔧 車庫淨化完成！成功排除 ${filterOutCount} 項遊戲專案，保留 ${matchCount} 項純正工具裝備。`;
+                showToast(`🎉 成功獲得 ${matchCount} 項工具類裝備！`);
+                showZone('castle');
+
+            } catch (error) {
+                statusEl.innerText = `❌ 錯誤: ${error.message}`;
+                showToast("⚠️ 盤點失敗");
+            } finally {
+                btnText.innerText = "⚡ 盤點車庫工具";
+            }
+        }
+
+        // ── 渲染右側分區卡片面版 ──
+        function showZone(zoneKey) {
+            const zone = parkZones[zoneKey];
+            if (!zone) return;
+
+            document.getElementById('panel-title').innerText = zone.title;
+            const contentEl = document.getElementById('panel-content');
+
+            let reposHtml = "";
+            if (zone.repos.length === 0) {
+                reposHtml = `<p style="color: var(--text-muted); font-style: italic; font-size: 0.9rem; margin-top: 10px;">🛠️ 目前此工具牆尚無符合條件的非遊戲裝備。</p>`;
+            } else {
+                zone.repos.forEach((repo, rIdx) => {
+                    const liveUrl = repo.homepage || '';
+                    const fallbackDisplayUrl = liveUrl || repo.html_url || 'No URL';
+
+                    reposHtml += `
+                        <div class="repo-item" id="repo-card-${rIdx}" data-ridx="${rIdx}">
+                            <!-- 實時畫面預覽窗口頂部 -->
+                            <div class="card-screenshot">
+                                <div class="placeholder">
+                                    <div class="emoji">🛠️</div>
+                                    <div class="url-preview">${fallbackDisplayUrl}</div>
+                                </div>
+                                <div class="shimmer"></div>
+                            </div>
+                            <!-- 內容詳情 -->
+                            <div class="repo-detail-wrap">
+                                <div class="repo-name">⚙️ ${repo.name}</div>
+                                <div class="repo-desc">${repo.description || "這個專案尚未編寫描述說明。"}</div>
+                                <div class="repo-links">
+                                    ${liveUrl ? `<a href="${liveUrl}" target="_blank" rel="noopener" class="repo-link">🚀 啟動工具 (Pages)</a>` : `<span style="font-size:0.75rem; color:var(--text-muted); text-align:center; width:100%; padding-top:4px;">(此專案無獨立部署頁面)</span>`}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            contentEl.innerHTML = `
+                <div class="zone-card">
+                    <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-light); margin-bottom: 15px;">${zone.desc}</p>
+                    <h4 style="font-size: 0.95rem; color: var(--neon-amber); border-bottom: 1px solid var(--metal-gray); padding-bottom: 5px;">🔧 工具裝備清單：</h4>
+                    <div class="repos-scroll-container">
+                        ${reposHtml}
+                    </div>
+                </div>
+            `;
+
+            if (zone.repos.length > 0) {
+                requestAnimationFrame(() => setupLazyPreviews(zone.repos));
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // 默認加載車庫核心工具桌
+        showZone('castle');
+    </script>
 </body>
 </html>
